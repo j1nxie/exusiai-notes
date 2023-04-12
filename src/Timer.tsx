@@ -1,9 +1,21 @@
-import { DateTime, Interval } from "luxon";
+import { DateTime } from "luxon";
 import { useEffect, useState } from "react";
 import type { Duration } from "luxon";
 import "./Timer.css";
 
 type MissionDictionary = Record<string, Array<string>>;
+
+const allMissions = [
+	"Cargo Escort",
+	"Tactical Drill",
+	"Resource Search",
+	"Tough Siege",
+	"Aerial Threat",
+	"Solid Defense",
+	"Fierce Attack",
+	"Unstoppable Charge",
+	"Fearless Protection",
+];
 
 const missions: MissionDictionary = {
 	Monday: ["Tactical Drill", "Resource Search", "Tough Siege", "Solid Defense", "Fierce Attack"],
@@ -78,7 +90,9 @@ function Timer() {
 	const [serverDate, setServerDate] = useState(serverDt.toFormat("DDD TTT"));
 	// TODO: render singular hour and minutes
 	const [resetPeriod, setResetPeriod] = useState(`${diff.hours} hours, ${diff.minutes} minutes`);
-	const [weekday, setWeekday] = useState(DateTime.utc().setZone("UTC-7").weekdayLong);
+	// NOTE: ugly hack because the game resets at 04:00 UTC-7, offsetting by
+	// another 4 hours to make it correct :tehe:
+	const [weekday, setWeekday] = useState(DateTime.utc().setZone("UTC-11").weekdayLong);
 
 	useEffect(() => {
 		const interval = setInterval(() => {
@@ -87,7 +101,7 @@ function Timer() {
 			setServerDate(serverDt.toFormat("DDD TTT"));
 			setResetPeriod(`${diff.hours} hours, ${diff.minutes} minutes`);
 
-			const weekday = serverDt.weekdayLong;
+			const weekday = serverDt.setZone("UTC-11").weekdayLong;
 
 			setWeekday(weekday);
 		});
@@ -100,39 +114,51 @@ function Timer() {
 	return (
 		<div className="Timer">
 			<div className="container">
-				<div className="card">
-					<div className="time-left">
-						<section>
-							<h3>Server Reset Time</h3>
-							<span>04:00 UTC-7</span>
-						</section>
-						<section>
-							<h3>Time Until Reset</h3>
-							<span>{resetPeriod}</span>
-						</section>
+				<div className="cards">
+					<div className="card timers">
+						<div className="time-left">
+							<section>
+								<h3>Server Reset Time</h3>
+								<span>04:00 UTC-7</span>
+							</section>
+							<section>
+								<h3>Time Until Reset</h3>
+								<span>{resetPeriod}</span>
+							</section>
+						</div>
+						<div className="time-right">
+							<section>
+								<h3>Local Time</h3>
+								<span>{localDate}</span>
+							</section>
+							<section>
+								<h3>Server Time</h3>
+								<span>{serverDate}</span>
+							</section>
+						</div>
 					</div>
-					<div className="time-right">
-						<section>
-							<h3>Local Time</h3>
-							<span>{localDate}</span>
-						</section>
-						<section>
-							<h3>Server Time</h3>
-							<span>{serverDate}</span>
-						</section>
+					<div className="card weekday">
+						<div className="time">
+							<section>
+								<h3>Current Weekday</h3>
+								<span>{weekday}</span>
+							</section>
+						</div>
 					</div>
 				</div>
-				<div className="card weekday">
-					<div className="time">
-						<section>
-							<h3>Current Weekday</h3>
-							<span>{weekday}</span>
-						</section>
-					</div>
+				<div className="missions">
+					{allMissions.map((mission) => (
+						<div
+							className={
+								missions[weekday].includes(mission)
+									? "time mission-card"
+									: "time mission-card unselected"
+							}
+						>
+							{mission}
+						</div>
+					))}
 				</div>
-				{missions[weekday].map((mission) => (
-					<div className="time">{mission}</div>
-				))}
 			</div>
 		</div>
 	);

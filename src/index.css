@@ -57,11 +57,10 @@ button:focus-visible {
 
 .container {
 	display: flex;
-	margin: 0 auto;
-}
-
-.container * {
+	flex-wrap: wrap;
+	justify-content: space-between;
 	margin: 20px auto;
+	width: 97%;
 }
 
 @media (prefers-color-scheme: light) {
